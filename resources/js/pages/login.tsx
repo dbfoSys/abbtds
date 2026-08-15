@@ -113,7 +113,7 @@ function BackgroundArtwork() {
     );
 }
 
-export default function Login() {
+export default function Login({ version }: { version: string }) {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -283,6 +283,10 @@ export default function Login() {
                             Authorized Users Only
                         </span>
                     </div>
+
+                    <p className="mt-4 text-center text-xs font-medium tracking-wide text-slate-400">
+                        System Version {version}
+                    </p>
                 </section>
 
                 <div className="absolute bottom-7 z-10 hidden items-center gap-4 text-sm text-white/90 sm:flex">
