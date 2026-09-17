@@ -27,7 +27,7 @@ update.url = (args: { user: number | { id: number } } | [user: number | { id: nu
             if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
             args = { user: args.id }
         }
-
+    
     if (Array.isArray(args)) {
         args = {
                     user: args[0],
@@ -86,8 +86,8 @@ update.patch = (args: { user: number | { id: number } } | [user: number | { id: 
                     }),
             method: 'post',
         })
+    
     update.form = updateForm
-
 const status = {
     update: Object.assign(update, update),
 }

@@ -160,7 +160,7 @@ update.url = (args: { user: number | { id: number } } | [user: number | { id: nu
             if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
             args = { user: args.id }
         }
-
+    
     if (Array.isArray(args)) {
         args = {
                     user: args[0],
@@ -219,8 +219,8 @@ update.patch = (args: { user: number | { id: number } } | [user: number | { id: 
                     }),
             method: 'post',
         })
+    
     update.form = updateForm
-
 /**
 * @see \App\Http\Controllers\UserController::resetPassword
  * @see app/Http/Controllers/UserController.php:145
@@ -249,7 +249,7 @@ resetPassword.url = (args: { user: number | { id: number } } | [user: number | {
             if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
             args = { user: args.id }
         }
-
+    
     if (Array.isArray(args)) {
         args = {
                     user: args[0],
@@ -308,8 +308,8 @@ resetPassword.patch = (args: { user: number | { id: number } } | [user: number |
                     }),
             method: 'post',
         })
+    
     resetPassword.form = resetPasswordForm
-
 /**
 * @see \App\Http\Controllers\UserController::changeStatus
  * @see app/Http/Controllers/UserController.php:155
@@ -338,7 +338,7 @@ changeStatus.url = (args: { user: number | { id: number } } | [user: number | { 
             if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
             args = { user: args.id }
         }
-
+    
     if (Array.isArray(args)) {
         args = {
                     user: args[0],
@@ -397,8 +397,8 @@ changeStatus.patch = (args: { user: number | { id: number } } | [user: number | 
                     }),
             method: 'post',
         })
+    
     changeStatus.form = changeStatusForm
-
 const UserController = { index, store, update, resetPassword, changeStatus }
 
 export default UserController

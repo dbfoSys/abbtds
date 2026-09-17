@@ -3,6 +3,11 @@
 if (($_SERVER['VERCEL'] ?? $_ENV['VERCEL'] ?? null) === '1') {
     $storagePath = sys_get_temp_dir().'/dbfos-storage';
 
+    $_ENV['SESSION_DRIVER'] ??= 'array';
+    $_SERVER['SESSION_DRIVER'] ??= 'array';
+    $_ENV['CACHE_STORE'] ??= 'array';
+    $_SERVER['CACHE_STORE'] ??= 'array';
+
     foreach (['framework/cache/data', 'framework/sessions', 'framework/views', 'logs'] as $directory) {
         $path = $storagePath.'/'.$directory;
 
