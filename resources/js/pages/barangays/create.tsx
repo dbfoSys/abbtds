@@ -2,6 +2,7 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent, ReactNode } from 'react';
 import MasterDataMenu from '@/components/master-data-menu';
+import NotificationBell from '@/components/notification-bell';
 import ReportsMenu from '@/components/reports-menu';
 import TransactionMenu from '@/components/transaction-menu';
 import { postalCode as postalCodeRoute } from '@/routes/psgc';
@@ -518,6 +519,7 @@ export default function CreateBarangay() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
+                            <NotificationBell />
                             <div className="hidden sm:block">
                                 <p className="text-sm font-bold">
                                     Juan Dela Cruz

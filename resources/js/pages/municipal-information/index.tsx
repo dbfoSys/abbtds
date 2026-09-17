@@ -2,6 +2,7 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import MasterDataMenu from '@/components/master-data-menu';
+import NotificationBell from '@/components/notification-bell';
 import ReportsMenu from '@/components/reports-menu';
 import TransactionMenu from '@/components/transaction-menu';
 import { dashboard } from '@/routes';
@@ -194,12 +195,7 @@ export default function MunicipalInformation() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <span className="relative text-2xl">
-                                ♧
-                                <b className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-red-500 text-[9px] text-white">
-                                    3
-                                </b>
-                            </span>
+                            <NotificationBell />
                             <div className="hidden sm:block">
                                 <p className="text-sm font-bold">
                                     Juan Dela Cruz

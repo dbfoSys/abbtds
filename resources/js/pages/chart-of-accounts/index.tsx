@@ -1,6 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import MasterDataMenu from '@/components/master-data-menu';
+import NotificationBell from '@/components/notification-bell';
 import ReportsMenu from '@/components/reports-menu';
 import TransactionMenu from '@/components/transaction-menu';
 import { dashboard } from '@/routes';
@@ -593,11 +594,14 @@ export default function ChartOfAccounts() {
                                 </p>
                             </div>
                         </div>
-                        <Form action="/logout" method="post">
-                            <button className="text-xs font-semibold text-slate-500">
-                                Sign out
-                            </button>
-                        </Form>
+                        <div className="flex items-center gap-4">
+                            <NotificationBell />
+                            <Form action="/logout" method="post">
+                                <button className="text-xs font-semibold text-slate-500">
+                                    Sign out
+                                </button>
+                            </Form>
+                        </div>
                     </header>
                     <main className="p-4 sm:p-6">
                         <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
