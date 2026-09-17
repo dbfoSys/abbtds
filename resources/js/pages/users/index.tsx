@@ -4,15 +4,23 @@ import MasterDataMenu from '@/components/master-data-menu';
 import NotificationBell from '@/components/notification-bell';
 import ReportsMenu from '@/components/reports-menu';
 import TransactionMenu from '@/components/transaction-menu';
-import { store as storeUser } from '@/routes/users';
+import { store as storeUser, update as updateUser } from '@/routes/users';
+import { update as updateUserPassword } from '@/routes/users/password';
+import { update as updateUserStatus } from '@/routes/users/status';
 
 type UserRow = {
+    id: number;
     name: string;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    contactNumber: string;
     username: string;
     email: string;
     role: string;
     office: string;
     status: string;
+    accessExpiresAt: string | null;
     login: string;
     avatar: string;
     createdAt: string;
@@ -387,9 +395,450 @@ function NewUserModal({
     );
 }
 
+function AccountDialog({
+    title,
+    description,
+    onClose,
+    children,
+}: {
+    title: string;
+    description: string;
+    onClose: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#061a38]/55 p-4 backdrop-blur-[2px]"
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+        >
+            <button
+                type="button"
+                className="absolute inset-0"
+                onClick={onClose}
+                aria-label="Close dialog"
+            />
+            <div className="relative z-10 max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(4,30,68,0.3)]">
+                <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+                    <div>
+                        <h2 className="text-xl font-bold text-[#092d62]">
+                            {title}
+                        </h2>
+                        <p className="mt-1 text-sm text-slate-500">
+                            {description}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex size-9 items-center justify-center rounded-full text-2xl text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                        aria-label="Close"
+                    >
+                        ×
+                    </button>
+                </div>
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function ViewUserDialog({
+    user,
+    onClose,
+}: {
+    user: UserRow;
+    onClose: () => void;
+}) {
+    const details = [
+        ['First Name', user.firstName || '—'],
+        ['Middle Name', user.middleName || '—'],
+        ['Last Name', user.lastName || '—'],
+        ['Contact Number', user.contactNumber || '—'],
+        ['Username', user.username],
+        ['Email Address', user.email],
+        ['Role', user.role],
+        ['Barangay / Office', user.office],
+        ['Account Status', user.status],
+        ['Access Expiration', user.accessExpiresAt ?? 'No expiration'],
+        ['Last Login', user.login],
+    ];
+
+    return (
+        <AccountDialog
+            title="User Details"
+            description={`Account information for ${user.name}`}
+            onClose={onClose}
+        >
+            <div className="grid gap-4 p-6 sm:grid-cols-2">
+                {details.map(([label, value]) => (
+                    <div key={label} className="rounded-lg bg-slate-50 p-3">
+                        <p className="text-[11px] font-semibold text-slate-500">
+                            {label}
+                        </p>
+                        <p className="mt-1 text-sm font-medium whitespace-pre-line text-[#092d62]">
+                            {value}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </AccountDialog>
+    );
+}
+
+function EditUserDialog({
+    user,
+    onClose,
+    onSaved,
+    isSelf,
+}: {
+    user: UserRow;
+    onClose: () => void;
+    onSaved: () => void;
+    isSelf: boolean;
+}) {
+    const inputClass =
+        'mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-[#0873e6] focus:ring-3 focus:ring-blue-100';
+
+    return (
+        <AccountDialog
+            title="Edit User"
+            description={`Update ${user.name}'s profile and access settings.`}
+            onClose={onClose}
+        >
+            <Form {...updateUser.form(user.id)} onSuccess={onSaved}>
+                {({ errors, processing }) => (
+                    <>
+                        <div className="space-y-5 p-6">
+                            {Object.keys(errors).length > 0 && (
+                                <div
+                                    role="alert"
+                                    className="rounded-lg bg-red-50 p-3 text-xs text-red-700"
+                                >
+                                    {Object.entries(errors).map(
+                                        ([field, message]) => (
+                                            <p key={field}>{message}</p>
+                                        ),
+                                    )}
+                                </div>
+                            )}
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <label className="text-xs font-semibold text-slate-700">
+                                    First Name *
+                                    <input
+                                        name="first_name"
+                                        required
+                                        defaultValue={user.firstName}
+                                        className={inputClass}
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Last Name *
+                                    <input
+                                        name="last_name"
+                                        required
+                                        defaultValue={user.lastName}
+                                        className={inputClass}
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Middle Name
+                                    <input
+                                        name="middle_name"
+                                        defaultValue={user.middleName}
+                                        className={inputClass}
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Contact Number
+                                    <input
+                                        name="contact_number"
+                                        defaultValue={user.contactNumber}
+                                        className={inputClass}
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Username *
+                                    <input
+                                        name="username"
+                                        required
+                                        defaultValue={user.username}
+                                        className={inputClass}
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Email Address *
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        required
+                                        defaultValue={user.email}
+                                        className={inputClass}
+                                    />
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Barangay / Office *
+                                    <select
+                                        name="office"
+                                        required
+                                        defaultValue={user.office}
+                                        className={inputClass}
+                                    >
+                                        {[
+                                            'Municipal Office',
+                                            'Barangay Poblacion',
+                                            'Barangay Tagoloan',
+                                            'Barangay Luneta',
+                                        ].map((office) => (
+                                            <option key={office}>
+                                                {office}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700">
+                                    Account Status *
+                                    <select
+                                        name="status"
+                                        required
+                                        defaultValue={user.status}
+                                        className={inputClass}
+                                    >
+                                        {[
+                                            'Active',
+                                            'Pending',
+                                            'Inactive',
+                                            'Locked',
+                                        ]
+                                            .filter(
+                                                (status) =>
+                                                    !isSelf ||
+                                                    status === 'Active',
+                                            )
+                                            .map((status) => (
+                                                <option key={status}>
+                                                    {status}
+                                                </option>
+                                            ))}
+                                    </select>
+                                </label>
+                                <label className="text-xs font-semibold text-slate-700 sm:col-span-2">
+                                    Access Expiration
+                                    <select
+                                        name="expiration"
+                                        defaultValue="Keep current"
+                                        className={inputClass}
+                                    >
+                                        <option>Keep current</option>
+                                        <option>No expiration</option>
+                                        <option>30 days</option>
+                                        <option>90 days</option>
+                                        <option>1 year</option>
+                                    </select>
+                                    <span className="mt-1 block font-normal text-slate-500">
+                                        Current:{' '}
+                                        {user.accessExpiresAt ??
+                                            'No expiration'}
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="h-10 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="h-10 rounded-lg bg-[#0873e6] px-5 text-sm font-semibold text-white disabled:opacity-60"
+                            >
+                                {processing ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </>
+                )}
+            </Form>
+        </AccountDialog>
+    );
+}
+
+function PasswordDialog({
+    user,
+    onClose,
+    onSaved,
+}: {
+    user: UserRow;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    return (
+        <AccountDialog
+            title="Set New Password"
+            description={`Set a new password for ${user.name}. Share it securely with the user.`}
+            onClose={onClose}
+        >
+            <Form
+                {...updateUserPassword.form(user.id)}
+                resetOnSuccess
+                onSuccess={onSaved}
+            >
+                {({ errors, processing }) => (
+                    <>
+                        <div className="space-y-4 p-6">
+                            {Object.keys(errors).length > 0 && (
+                                <div
+                                    role="alert"
+                                    className="rounded-lg bg-red-50 p-3 text-xs text-red-700"
+                                >
+                                    {Object.entries(errors).map(
+                                        ([field, message]) => (
+                                            <p key={field}>{message}</p>
+                                        ),
+                                    )}
+                                </div>
+                            )}
+                            <label className="block text-xs font-semibold text-slate-700">
+                                New Password *
+                                <input
+                                    name="password"
+                                    type="password"
+                                    required
+                                    minLength={12}
+                                    autoComplete="new-password"
+                                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-[#0873e6]"
+                                />
+                            </label>
+                            <label className="block text-xs font-semibold text-slate-700">
+                                Confirm New Password *
+                                <input
+                                    name="password_confirmation"
+                                    type="password"
+                                    required
+                                    minLength={12}
+                                    autoComplete="new-password"
+                                    className="mt-2 h-11 w-full rounded-lg border border-slate-300 px-3 font-normal outline-none focus:border-[#0873e6]"
+                                />
+                            </label>
+                            <p className="text-xs text-slate-500">
+                                Use at least 12 characters. The password will
+                                not be shown again after saving.
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="h-10 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="h-10 rounded-lg bg-[#0873e6] px-5 text-sm font-semibold text-white disabled:opacity-60"
+                            >
+                                {processing ? 'Saving...' : 'Update Password'}
+                            </button>
+                        </div>
+                    </>
+                )}
+            </Form>
+        </AccountDialog>
+    );
+}
+
+function MoreUserActionsDialog({
+    user,
+    isSelf,
+    onClose,
+    onStatusChanged,
+    onNotice,
+}: {
+    user: UserRow;
+    isSelf: boolean;
+    onClose: () => void;
+    onStatusChanged: () => void;
+    onNotice: (message: string) => void;
+}) {
+    const nextStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+
+    return (
+        <AccountDialog
+            title="More Account Actions"
+            description={user.name}
+            onClose={onClose}
+        >
+            <div className="space-y-3 p-6">
+                <button
+                    type="button"
+                    onClick={async () => {
+                        try {
+                            await navigator.clipboard.writeText(user.email);
+                            onNotice('Email address copied to clipboard.');
+                            onClose();
+                        } catch {
+                            onNotice('Could not copy the email address.');
+                        }
+                    }}
+                    className="w-full rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-[#092d62] hover:bg-slate-50"
+                >
+                    Copy email address
+                </button>
+                {!isSelf ? (
+                    <Form
+                        {...updateUserStatus.form(user.id)}
+                        onBefore={() =>
+                            window.confirm(
+                                `${nextStatus === 'Inactive' ? 'Deactivate' : 'Activate'} ${user.name}?`,
+                            )
+                        }
+                        onSuccess={onStatusChanged}
+                    >
+                        {({ errors, processing }) => (
+                            <>
+                                <input
+                                    type="hidden"
+                                    name="status"
+                                    value={nextStatus}
+                                />
+                                {errors.status && (
+                                    <p
+                                        role="alert"
+                                        className="mb-2 text-xs text-red-700"
+                                    >
+                                        {errors.status}
+                                    </p>
+                                )}
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="w-full rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-[#092d62] hover:bg-slate-50 disabled:opacity-60"
+                                >
+                                    {processing
+                                        ? 'Updating...'
+                                        : `${nextStatus === 'Inactive' ? 'Deactivate' : 'Activate'} account`}
+                                </button>
+                            </>
+                        )}
+                    </Form>
+                ) : (
+                    <p className="text-xs text-slate-500">
+                        You cannot deactivate your own account.
+                    </p>
+                )}
+            </div>
+        </AccountDialog>
+    );
+}
+
 function UsersPage({ users }: { users: UserRow[] }) {
     const { auth } = usePage<{
-        auth: { user: { name: string; role: string } };
+        auth: { user: { id: number; name: string; role: string } };
     }>().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -397,7 +846,15 @@ function UsersPage({ users }: { users: UserRow[] }) {
     const [status, setStatus] = useState('All Statuses');
     const [office, setOffice] = useState('All Barangays / Offices');
     const [showNewUser, setShowNewUser] = useState(false);
-    const [created, setCreated] = useState(false);
+    const [notice, setNotice] = useState('');
+    const [selectedAction, setSelectedAction] = useState<{
+        kind: 'view' | 'edit' | 'password' | 'more';
+        user: UserRow;
+    } | null>(null);
+    const showNotice = (message: string) => {
+        setNotice(message);
+        window.setTimeout(() => setNotice(''), 3000);
+    };
     const filtered = useMemo(
         () =>
             users
@@ -746,7 +1203,7 @@ function UsersPage({ users }: { users: UserRow[] }) {
                                             <tbody>
                                                 {filtered.map((user) => (
                                                     <tr
-                                                        key={user.username}
+                                                        key={user.id}
                                                         className="border-b last:border-0"
                                                     >
                                                         <td className="px-4 py-2">
@@ -791,24 +1248,54 @@ function UsersPage({ users }: { users: UserRow[] }) {
                                                         </td>
                                                         <td>
                                                             <div className="flex gap-2">
-                                                                {[
-                                                                    '◉',
-                                                                    '✎',
-                                                                    '⚿',
-                                                                    '⋮',
-                                                                ].map(
+                                                                {(
+                                                                    [
+                                                                        {
+                                                                            kind: 'view',
+                                                                            icon: '◉',
+                                                                            label: 'View details',
+                                                                        },
+                                                                        {
+                                                                            kind: 'edit',
+                                                                            icon: '✎',
+                                                                            label: 'Edit user',
+                                                                        },
+                                                                        {
+                                                                            kind: 'password',
+                                                                            icon: '⚿',
+                                                                            label: 'Set new password',
+                                                                        },
+                                                                        {
+                                                                            kind: 'more',
+                                                                            icon: '⋮',
+                                                                            label: 'More actions',
+                                                                        },
+                                                                    ] as const
+                                                                ).map(
                                                                     (
                                                                         action,
-                                                                        index,
                                                                     ) => (
                                                                         <button
                                                                             key={
-                                                                                index
+                                                                                action.kind
+                                                                            }
+                                                                            type="button"
+                                                                            title={
+                                                                                action.label
+                                                                            }
+                                                                            aria-label={`${action.label} for ${user.name}`}
+                                                                            onClick={() =>
+                                                                                setSelectedAction(
+                                                                                    {
+                                                                                        kind: action.kind,
+                                                                                        user,
+                                                                                    },
+                                                                                )
                                                                             }
                                                                             className="flex size-8 items-center justify-center rounded-md border border-slate-200 text-sm text-[#0873e6]"
                                                                         >
                                                                             {
-                                                                                action
+                                                                                action.icon
                                                                             }
                                                                         </button>
                                                                     ),
@@ -958,12 +1445,12 @@ function UsersPage({ users }: { users: UserRow[] }) {
                         </span>
                     </footer>
                 </div>
-                {created && (
+                {notice && (
                     <div className="fixed right-5 bottom-5 z-50 flex items-center gap-3 rounded-xl bg-[#159653] px-5 py-4 text-sm font-semibold text-white shadow-xl">
                         <span className="flex size-6 items-center justify-center rounded-full bg-white/20">
                             ✓
                         </span>
-                        User account created successfully.
+                        {notice}
                     </div>
                 )}
                 {showNewUser && (
@@ -971,8 +1458,46 @@ function UsersPage({ users }: { users: UserRow[] }) {
                         onClose={() => setShowNewUser(false)}
                         onCreated={() => {
                             setShowNewUser(false);
-                            setCreated(true);
-                            setTimeout(() => setCreated(false), 3000);
+                            showNotice('User account created successfully.');
+                        }}
+                    />
+                )}
+                {selectedAction?.kind === 'view' && (
+                    <ViewUserDialog
+                        user={selectedAction.user}
+                        onClose={() => setSelectedAction(null)}
+                    />
+                )}
+                {selectedAction?.kind === 'edit' && (
+                    <EditUserDialog
+                        user={selectedAction.user}
+                        isSelf={selectedAction.user.id === auth.user.id}
+                        onClose={() => setSelectedAction(null)}
+                        onSaved={() => {
+                            setSelectedAction(null);
+                            showNotice('User details updated successfully.');
+                        }}
+                    />
+                )}
+                {selectedAction?.kind === 'password' && (
+                    <PasswordDialog
+                        user={selectedAction.user}
+                        onClose={() => setSelectedAction(null)}
+                        onSaved={() => {
+                            setSelectedAction(null);
+                            showNotice('User password updated successfully.');
+                        }}
+                    />
+                )}
+                {selectedAction?.kind === 'more' && (
+                    <MoreUserActionsDialog
+                        user={selectedAction.user}
+                        isSelf={selectedAction.user.id === auth.user.id}
+                        onClose={() => setSelectedAction(null)}
+                        onNotice={showNotice}
+                        onStatusChanged={() => {
+                            setSelectedAction(null);
+                            showNotice('Account status updated successfully.');
                         }}
                     />
                 )}

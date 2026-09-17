@@ -55,5 +55,10 @@ Route::middleware(['auth', EnsureUserAccountActive::class])->group(function (): 
     Route::inertia('/settings', 'settings/index')->name('settings.index');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/password', [UserController::class, 'resetPassword'])
+        ->middleware('throttle:10,1')
+        ->name('users.password.update');
+    Route::patch('/users/{user}/status', [UserController::class, 'changeStatus'])->name('users.status.update');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
