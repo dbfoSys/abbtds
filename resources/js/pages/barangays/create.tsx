@@ -417,6 +417,7 @@ export default function CreateBarangay() {
         if (!file) {
             setSealPreview('');
             setSealError('');
+
             return;
         }
 
@@ -424,6 +425,7 @@ export default function CreateBarangay() {
             event.target.value = '';
             setSealPreview('');
             setSealError('Please select a JPG or PNG image.');
+
             return;
         }
 
@@ -431,6 +433,7 @@ export default function CreateBarangay() {
             event.target.value = '';
             setSealPreview('');
             setSealError('The image must not exceed 10 MB.');
+
             return;
         }
 
