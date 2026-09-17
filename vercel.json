@@ -1,5 +1,20 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
+    "version": 2,
+    "framework": null,
     "buildCommand": "npm run build",
-    "outputDirectory": "public"
+    "outputDirectory": "public",
+    "functions": {
+        "api/index.php": {
+            "runtime": "vercel-php@0.8.0"
+        }
+    },
+    "routes": [
+        { "src": "/(build|images)/(.*)", "dest": "/$1/$2" },
+        {
+            "src": "/(apple-touch-icon\\.png|favicon\\.ico|favicon\\.svg|robots\\.txt)",
+            "dest": "/$1"
+        },
+        { "src": "/(.*)", "dest": "/api/index.php" }
+    ]
 }

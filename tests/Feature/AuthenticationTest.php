@@ -3,9 +3,15 @@
 use App\Models\User;
 
 it('renders the login page', function () {
-    $this->get(route('login'))
+    $this->get('/')
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page->component('login'));
+});
+
+it('redirects an authenticated user from the entry page to the dashboard', function () {
+    $this->actingAs(User::factory()->create())
+        ->get('/')
+        ->assertRedirect(route('dashboard'));
 });
 
 it('authenticates a user with their username', function () {

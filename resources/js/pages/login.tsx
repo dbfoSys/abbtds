@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { store as storeLogin } from '@/routes/login';
 
 function DbfosLogo() {
     return (
@@ -125,8 +126,7 @@ export default function Login({ version }: { version: string }) {
                     <DbfosLogo />
 
                     <Form
-                        action="/login"
-                        method="post"
+                        {...storeLogin.form()}
                         resetOnError={['password']}
                         className="mx-auto mt-7 flex max-w-[560px] flex-col gap-4"
                     >
