@@ -6,6 +6,8 @@ import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
 
+const isVercelBuild = process.env.VERCEL === '1';
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -24,8 +26,13 @@ export default defineConfig({
             },
         }),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
+        // Vercel's Node builder has no PHP, so it uses committed generated routes.
+        ...(isVercelBuild
+            ? []
+            : [
+                  wayfinder({
+                      formVariants: true,
+                  }),
+              ]),
     ],
 });

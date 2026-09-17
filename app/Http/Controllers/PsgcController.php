@@ -164,7 +164,13 @@ class PsgcController extends Controller
                     return [];
                 }
 
-                return collect(preg_split('/\R/', trim($contents)))
+                $lines = preg_split('/\R/', trim($contents));
+
+                if ($lines === false) {
+                    return [];
+                }
+
+                return collect($lines)
                     ->map(function (string $line): ?array {
                         $columns = explode("\t", $line);
 
