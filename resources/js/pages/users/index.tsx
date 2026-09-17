@@ -295,14 +295,6 @@ function NewUserModal({
                                             <option>
                                                 System Administrator
                                             </option>
-                                            <option>Punong Barangay</option>
-                                            <option>Barangay Treasurer</option>
-                                            <option>Barangay Secretary</option>
-                                            <option>
-                                                Sangguniang Barangay
-                                            </option>
-                                            <option>Staff</option>
-                                            <option>Viewer</option>
                                         </select>
                                     </label>
                                     <label className="text-xs font-semibold text-slate-700">

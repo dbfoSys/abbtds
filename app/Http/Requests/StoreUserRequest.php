@@ -10,7 +10,7 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role === 'System Administrator';
+        return $this->user()?->effectiveRole() === 'System Administrator';
     }
 
     /** @return array<string, array<int, mixed>> */
@@ -30,7 +30,7 @@ class StoreUserRequest extends FormRequest
             ],
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class, 'email')],
             'password' => ['required', 'string', 'min:8', 'max:255'],
-            'role' => ['required', Rule::in(['System Administrator', 'Punong Barangay', 'Barangay Treasurer', 'Barangay Secretary', 'Sangguniang Barangay', 'Staff', 'Viewer'])],
+            'role' => ['required', Rule::in(['System Administrator'])],
             'office' => ['required', Rule::in(['Municipal Office', 'Barangay Poblacion', 'Barangay Tagoloan', 'Barangay Luneta'])],
             'status' => ['required', Rule::in(['Active', 'Pending', 'Inactive'])],
             'expiration' => ['required', Rule::in(['No expiration', '30 days', '90 days', '1 year'])],

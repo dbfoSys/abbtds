@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\UserManagement;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -22,7 +23,7 @@ function newUserPayload(array $overrides = []): array
     ], $overrides);
 }
 
-it('stores the new user details on the users table', function () {
+it('stores the account in users and its details in usermanagement', function () {
     $administrator = User::factory()->create();
 
     $this->actingAs($administrator)
@@ -30,18 +31,24 @@ it('stores the new user details on the users table', function () {
         ->assertRedirect();
 
     $user = User::query()->where('name', 'maria.santos')->firstOrFail();
+    $profile = $user->userManagement;
 
-    expect($user->first_name)->toBe('Maria')
-        ->and($user->middle_name)->toBe('Dela Cruz')
-        ->and($user->last_name)->toBe('Santos')
-        ->and($user->contact_number)->toBe('0917 123 4567')
+    expect($profile)->toBeInstanceOf(UserManagement::class)
+        ->and($profile?->user_id)->toBe($user->id)
+        ->and($profile?->first_name)->toBe('Maria')
+        ->and($profile?->middle_name)->toBe('Dela Cruz')
+        ->and($profile?->last_name)->toBe('Santos')
+        ->and($profile?->contact_number)->toBe('0917 123 4567')
+        ->and($profile?->role)->toBe('System Administrator')
+        ->and($profile?->office)->toBe('Municipal Office')
+        ->and($profile?->status)->toBe('Active')
+        ->and($profile?->access_expires_at)->toBeNull()
         ->and($user->username)->toBe('maria.santos')
-        ->and($user->role)->toBe('System Administrator')
-        ->and($user->office)->toBe('Municipal Office')
-        ->and($user->status)->toBe('Active')
-        ->and($user->access_expires_at)->toBeNull()
+        ->and($user->email)->toBe('maria.santos@example.com')
         ->and($user->must_change_password)->toBeTrue()
         ->and(Hash::check('DBFOS1234', $user->password))->toBeTrue();
+
+    $this->actingAs($user)->get(route('users.index'))->assertSuccessful();
 });
 
 it('shows saved accounts on the user management page', function () {
@@ -69,7 +76,18 @@ it('prevents non-administrators from creating accounts', function () {
         ->assertForbidden();
 
     $this->assertDatabaseMissing('users', ['username' => 'maria.santos']);
+    $this->assertDatabaseCount('usermanagement', 0);
     $this->actingAs($viewer)->get(route('users.index'))->assertForbidden();
+});
+
+it('only permits the System Administrator role in this form', function () {
+    $administrator = User::factory()->create();
+
+    $this->actingAs($administrator)
+        ->post(route('users.store'), newUserPayload(['role' => 'Viewer']))
+        ->assertSessionHasErrors('role');
+
+    $this->assertDatabaseMissing('users', ['username' => 'maria.santos']);
 });
 
 it('stores the selected access expiration', function () {
@@ -81,8 +99,23 @@ it('stores the selected access expiration', function () {
 
     $user = User::query()->where('username', 'maria.santos')->firstOrFail();
 
-    expect($user->access_expires_at?->toDateString())
+    expect($user->userManagement?->access_expires_at?->toDateString())
         ->toBe(now()->addDays(30)->toDateString());
+});
+
+it('removes the linked usermanagement record when the user is deleted', function () {
+    $administrator = User::factory()->create();
+
+    $this->actingAs($administrator)
+        ->post(route('users.store'), newUserPayload())
+        ->assertRedirect();
+
+    $user = User::query()->where('username', 'maria.santos')->firstOrFail();
+    $profile = $user->userManagement;
+
+    $user->delete();
+
+    $this->assertDatabaseMissing('usermanagement', ['id' => $profile?->id]);
 });
 
 it('rejects a username that is already used by a legacy account', function () {
@@ -122,4 +155,5 @@ it('does not create the user when credential delivery fails', function () {
         ->assertSessionHasErrors('send_credentials');
 
     $this->assertDatabaseMissing('users', ['name' => 'maria.santos']);
+    $this->assertDatabaseCount('usermanagement', 0);
 });

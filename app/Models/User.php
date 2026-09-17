@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read UserManagement|null $userManagement
  */
 #[Fillable([
     'name',
@@ -62,10 +64,25 @@ class User extends Authenticatable
         'must_change_password' => false,
     ];
 
+    /** @return HasOne<UserManagement, $this> */
+    public function userManagement(): HasOne
+    {
+        return $this->hasOne(UserManagement::class);
+    }
+
+    public function effectiveRole(): string
+    {
+        return $this->userManagement->role ?? $this->role;
+    }
+
     public function hasActiveAccess(): bool
     {
-        return $this->status === 'Active'
-            && ($this->access_expires_at === null || $this->access_expires_at->isFuture());
+        $management = $this->userManagement;
+        $status = $management === null ? $this->status : $management->status;
+        $expiresAt = $management === null ? $this->access_expires_at : $management->access_expires_at;
+
+        return $status === 'Active'
+            && ($expiresAt === null || $expiresAt->isFuture());
     }
 
     /**

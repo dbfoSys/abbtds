@@ -8,6 +8,7 @@ use App\Services\ResendEmailService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,25 +18,27 @@ class UserController extends Controller
 {
     public function index(Request $request): Response
     {
-        abort_unless($request->user()?->role === 'System Administrator', 403);
+        abort_unless($request->user()?->effectiveRole() === 'System Administrator', 403);
 
         $users = User::query()
+            ->with('userManagement')
             ->orderByDesc('id')
             ->get()
             ->map(function (User $user): array {
+                $profile = $user->userManagement;
                 $fullName = trim(implode(' ', array_filter([
-                    $user->first_name,
-                    $user->middle_name,
-                    $user->last_name,
+                    $profile->first_name ?? $user->first_name,
+                    $profile->middle_name ?? $user->middle_name,
+                    $profile->last_name ?? $user->last_name,
                 ])));
 
                 return [
                     'name' => $fullName !== '' ? $fullName : $user->name,
                     'username' => $user->username ?? $user->name,
                     'email' => $user->email,
-                    'role' => $user->role,
-                    'office' => $user->office,
-                    'status' => $user->status,
+                    'role' => $profile->role ?? $user->role,
+                    'office' => $profile->office ?? $user->office,
+                    'status' => $profile->status ?? $user->status,
                     'login' => $user->last_login_at?->format("M d, Y\nh:i A") ?? 'Never logged in',
                     'avatar' => '👤',
                     'createdAt' => $user->created_at?->format("M d, Y\nh:i A") ?? '',
@@ -48,21 +51,28 @@ class UserController extends Controller
     public function store(StoreUserRequest $request, ResendEmailService $emailService): RedirectResponse
     {
         $data = $request->validated();
-        $user = User::query()->create([
-            'name' => $data['username'],
-            'first_name' => $data['first_name'],
-            'middle_name' => $data['middle_name'] ?? null,
-            'last_name' => $data['last_name'],
-            'contact_number' => $data['contact_number'] ?? null,
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'role' => $data['role'],
-            'office' => $data['office'],
-            'status' => $data['status'],
-            'access_expires_at' => $this->accessExpiration($data['expiration']),
-            'must_change_password' => true,
-            'password' => $data['password'],
-        ]);
+        $user = DB::transaction(function () use ($data): User {
+            $user = User::query()->create([
+                'name' => $data['username'],
+                'username' => $data['username'],
+                'email' => $data['email'],
+                'must_change_password' => true,
+                'password' => $data['password'],
+            ]);
+
+            $user->userManagement()->create([
+                'first_name' => $data['first_name'],
+                'middle_name' => $data['middle_name'] ?? null,
+                'last_name' => $data['last_name'],
+                'contact_number' => $data['contact_number'] ?? null,
+                'role' => $data['role'],
+                'office' => $data['office'],
+                'status' => $data['status'],
+                'access_expires_at' => $this->accessExpiration($data['expiration']),
+            ]);
+
+            return $user;
+        });
 
         if ($request->boolean('send_credentials')) {
             try {

@@ -22,6 +22,7 @@ it('creates the administrator with supplied credentials without resetting its pa
 
     expect($admin->role)->toBe('System Administrator')
         ->and($admin->username)->toBe('admin')
+        ->and($admin->userManagement?->role)->toBe('System Administrator')
         ->and(Hash::check('A-secure-password-2026!', $admin->password))->toBeTrue();
 
     config()->set('auth.bootstrap_admin.password', 'A-different-password-2026!');

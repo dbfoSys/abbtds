@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        User::query()->firstOrCreate(['email' => $email], [
+        $user = User::query()->firstOrCreate(['email' => $email], [
             'name' => 'admin',
             'username' => 'admin',
             'first_name' => 'System',
@@ -36,6 +36,17 @@ class DatabaseSeeder extends Seeder
             'status' => 'Active',
             'must_change_password' => false,
             'password' => Hash::make($password),
+        ]);
+
+        $user->userManagement()->firstOrCreate([], [
+            'first_name' => $user->first_name,
+            'middle_name' => $user->middle_name,
+            'last_name' => $user->last_name,
+            'contact_number' => $user->contact_number,
+            'role' => $user->role,
+            'office' => $user->office,
+            'status' => $user->status,
+            'access_expires_at' => $user->access_expires_at,
         ]);
     }
 }

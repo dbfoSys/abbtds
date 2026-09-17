@@ -38,6 +38,28 @@ it('rejects login for an inactive account', function () {
     $this->assertGuest();
 });
 
+it('uses the usermanagement status for login access', function () {
+    $user = User::factory()->create([
+        'name' => 'managed-user',
+        'password' => 'DBFOS2026!',
+        'status' => 'Active',
+    ]);
+    $user->userManagement()->create([
+        'first_name' => 'Managed',
+        'last_name' => 'User',
+        'role' => 'System Administrator',
+        'office' => 'Municipal Office',
+        'status' => 'Inactive',
+    ]);
+
+    $this->post(route('login.store'), [
+        'username' => 'managed-user',
+        'password' => 'DBFOS2026!',
+    ])->assertSessionHasErrors('username');
+
+    $this->assertGuest();
+});
+
 it('rejects login for an expired account', function () {
     User::factory()->create([
         'name' => 'expired-user',
