@@ -1871,84 +1871,6 @@ Controller4b87d2df7e3aa853f6720faea796e36c.head = (options?: RouteQueryOptions):
         })
     
     Controller4b87d2df7e3aa853f6720faea796e36c.form = Controller4b87d2df7e3aa853f6720faea796e36cForm
-    /**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-const Controller6e8299a085c11017e62ab420951fb27c = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: Controller6e8299a085c11017e62ab420951fb27c.url(options),
-    method: 'get',
-})
-
-Controller6e8299a085c11017e62ab420951fb27c.definition = {
-    methods: ["get","head"],
-    url: '/users',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-Controller6e8299a085c11017e62ab420951fb27c.url = (options?: RouteQueryOptions) => {
-    return Controller6e8299a085c11017e62ab420951fb27c.definition.url + queryParams(options)
-}
-
-/**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-Controller6e8299a085c11017e62ab420951fb27c.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: Controller6e8299a085c11017e62ab420951fb27c.url(options),
-    method: 'get',
-})
-/**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-Controller6e8299a085c11017e62ab420951fb27c.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: Controller6e8299a085c11017e62ab420951fb27c.url(options),
-    method: 'head',
-})
-
-    /**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-    const Controller6e8299a085c11017e62ab420951fb27cForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: Controller6e8299a085c11017e62ab420951fb27c.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-        Controller6e8299a085c11017e62ab420951fb27cForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: Controller6e8299a085c11017e62ab420951fb27c.url(options),
-            method: 'get',
-        })
-            /**
-* @see \Inertia\Controller::__invoke
- * @see vendor/inertiajs/inertia-laravel/src/Controller.php:13
- * @route '/users'
- */
-        Controller6e8299a085c11017e62ab420951fb27cForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: Controller6e8299a085c11017e62ab420951fb27c.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    Controller6e8299a085c11017e62ab420951fb27c.form = Controller6e8299a085c11017e62ab420951fb27cForm
 
 /**
 * Multiple routes resolve to \Inertia\Controller::Controller, so this export is a
@@ -1980,7 +1902,6 @@ const Controller = {
     '/budgets': Controllerd65bcf739ad2a9a13b6c3c100ab1c5e2,
     '/budgets/create': Controller91666a90e3e3fc2c8cfc43356700fbfc,
     '/settings': Controller4b87d2df7e3aa853f6720faea796e36c,
-    '/users': Controller6e8299a085c11017e62ab420951fb27c,
 }
 
 export default Controller

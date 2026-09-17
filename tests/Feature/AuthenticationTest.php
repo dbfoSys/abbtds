@@ -20,6 +20,46 @@ it('authenticates a user with their username', function () {
     ])->assertRedirect(route('dashboard'));
 
     $this->assertAuthenticatedAs($user);
+    expect($user->fresh()->last_login_at)->not->toBeNull();
+});
+
+it('rejects login for an inactive account', function () {
+    User::factory()->create([
+        'name' => 'inactive-user',
+        'password' => 'DBFOS2026!',
+        'status' => 'Inactive',
+    ]);
+
+    $this->post(route('login.store'), [
+        'username' => 'inactive-user',
+        'password' => 'DBFOS2026!',
+    ])->assertSessionHasErrors('username');
+
+    $this->assertGuest();
+});
+
+it('rejects login for an expired account', function () {
+    User::factory()->create([
+        'name' => 'expired-user',
+        'password' => 'DBFOS2026!',
+        'access_expires_at' => now()->subDay(),
+    ]);
+
+    $this->post(route('login.store'), [
+        'username' => 'expired-user',
+        'password' => 'DBFOS2026!',
+    ])->assertSessionHasErrors('username');
+
+    $this->assertGuest();
+});
+
+it('ends an expired authenticated session', function () {
+    $user = User::factory()->create(['access_expires_at' => now()->subDay()]);
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertRedirect(route('login'));
+
+    $this->assertGuest();
 });
 
 it('rejects invalid credentials', function () {

@@ -235,7 +235,7 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     dashboard.form = dashboardForm
 /**
 * @see \App\Http\Controllers\AuthenticatedSessionController::logout
- * @see app/Http/Controllers/AuthenticatedSessionController.php:31
+ * @see app/Http/Controllers/AuthenticatedSessionController.php:43
  * @route '/logout'
  */
 export const logout = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -250,7 +250,7 @@ logout.definition = {
 
 /**
 * @see \App\Http\Controllers\AuthenticatedSessionController::logout
- * @see app/Http/Controllers/AuthenticatedSessionController.php:31
+ * @see app/Http/Controllers/AuthenticatedSessionController.php:43
  * @route '/logout'
  */
 logout.url = (options?: RouteQueryOptions) => {
@@ -259,7 +259,7 @@ logout.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\AuthenticatedSessionController::logout
- * @see app/Http/Controllers/AuthenticatedSessionController.php:31
+ * @see app/Http/Controllers/AuthenticatedSessionController.php:43
  * @route '/logout'
  */
 logout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -269,7 +269,7 @@ logout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\AuthenticatedSessionController::logout
- * @see app/Http/Controllers/AuthenticatedSessionController.php:31
+ * @see app/Http/Controllers/AuthenticatedSessionController.php:43
  * @route '/logout'
  */
     const logoutForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -279,7 +279,7 @@ logout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\AuthenticatedSessionController::logout
- * @see app/Http/Controllers/AuthenticatedSessionController.php:31
+ * @see app/Http/Controllers/AuthenticatedSessionController.php:43
  * @route '/logout'
  */
         logoutForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

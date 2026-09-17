@@ -1,9 +1,10 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import MasterDataMenu from '@/components/master-data-menu';
 import NotificationBell from '@/components/notification-bell';
 import ReportsMenu from '@/components/reports-menu';
 import TransactionMenu from '@/components/transaction-menu';
+import { store as storeUser } from '@/routes/users';
 
 type UserRow = {
     name: string;
@@ -14,90 +15,8 @@ type UserRow = {
     status: string;
     login: string;
     avatar: string;
+    createdAt: string;
 };
-
-const users: UserRow[] = [
-    {
-        name: 'Juan Dela Cruz',
-        username: 'juan.delacruz',
-        email: 'juan.delacruz@villanueva.gov.ph',
-        role: 'Barangay Treasurer',
-        office: 'Barangay Poblacion',
-        status: 'Active',
-        login: 'May 20, 2025\n09:15 AM',
-        avatar: '👨🏻',
-    },
-    {
-        name: 'Maria Santos',
-        username: 'maria.santos',
-        email: 'maria.santos@villanueva.gov.ph',
-        role: 'Punong Barangay',
-        office: 'Barangay Poblacion',
-        status: 'Active',
-        login: 'May 20, 2025\n08:42 AM',
-        avatar: '👩🏻',
-    },
-    {
-        name: 'Pedro Gomez',
-        username: 'pedro.gomez',
-        email: 'pedro.gomez@villanueva.gov.ph',
-        role: 'Barangay Secretary',
-        office: 'Barangay Tagoloan',
-        status: 'Active',
-        login: 'May 19, 2025\n04:21 PM',
-        avatar: '👨🏽',
-    },
-    {
-        name: 'Anna Reyes',
-        username: 'anna.reyes',
-        email: 'anna.reyes@villanueva.gov.ph',
-        role: 'Sangguniang Barangay',
-        office: 'Barangay Tagoloan',
-        status: 'Inactive',
-        login: 'May 10, 2025\n10:11 AM',
-        avatar: '👩🏽',
-    },
-    {
-        name: 'Michael Tan',
-        username: 'michael.tan',
-        email: 'michael.tan@villanueva.gov.ph',
-        role: 'Staff',
-        office: 'Municipal Office',
-        status: 'Active',
-        login: 'May 20, 2025\n11:32 AM',
-        avatar: '👨🏼',
-    },
-    {
-        name: 'Liza Fernandez',
-        username: 'liza.fernandez',
-        email: 'liza.fernandez@villanueva.gov.ph',
-        role: 'Viewer',
-        office: 'Municipal Office',
-        status: 'Active',
-        login: 'May 18, 2025\n02:05 PM',
-        avatar: '👩🏻',
-    },
-    {
-        name: 'Robert Lim',
-        username: 'robert.lim',
-        email: 'robert.lim@villanueva.gov.ph',
-        role: 'Barangay Treasurer',
-        office: 'Barangay Luneta',
-        status: 'Pending',
-        login: 'Never logged in',
-        avatar: '👨🏻',
-    },
-    {
-        name: 'Grace Villanueva',
-        username: 'grace.villanueva',
-        email: 'grace.villanueva@villanueva.gov.ph',
-        role: 'Staff',
-        office: 'Municipal Office',
-        status: 'Locked',
-        login: 'May 05, 2025\n03:17 PM',
-        avatar: '👩🏻',
-    },
-];
 
 const menu = [
     ['⌂', 'Dashboard', '/dashboard'],
@@ -116,6 +35,7 @@ const menu = [
 ];
 
 const roleColors: Record<string, string> = {
+    'System Administrator': 'bg-indigo-100 text-indigo-700',
     'Barangay Treasurer': 'bg-blue-100 text-blue-700',
     'Punong Barangay': 'bg-purple-100 text-purple-700',
     'Barangay Secretary': 'bg-cyan-100 text-cyan-700',
@@ -172,7 +92,7 @@ function NewUserModal({
     onCreated: () => void;
 }) {
     const [showPassword, setShowPassword] = useState(false);
-    const [sendCredentials, setSendCredentials] = useState(true);
+    const [sendCredentials, setSendCredentials] = useState(false);
 
     return (
         <div
@@ -187,13 +107,12 @@ function NewUserModal({
                 aria-label="Close new user dialog"
             />
             <Form
-                action="/users"
-                method="post"
+                {...storeUser.form()}
                 resetOnSuccess
                 onBefore={() =>
                     !sendCredentials ||
                     window.confirm(
-                        'Send login credentials by email?\n\nThe user will receive their username, temporary password, and sign-in instructions.',
+                        'Send an account notification by email?\n\nThe user will receive their username and sign-in instructions. Share the temporary password separately.',
                     )
                 }
                 onSuccess={() => onCreated()}
@@ -230,6 +149,18 @@ function NewUserModal({
                         </div>
 
                         <div className="space-y-6 px-6 py-6 sm:px-8">
+                            {Object.entries(errors).length > 0 && (
+                                <div
+                                    role="alert"
+                                    className="rounded-lg bg-red-50 px-4 py-3 text-xs text-red-700"
+                                >
+                                    {Object.entries(errors).map(
+                                        ([field, message]) => (
+                                            <p key={field}>{message}</p>
+                                        ),
+                                    )}
+                                </div>
+                            )}
                             <section>
                                 <h3 className="flex items-center gap-2 text-sm font-bold text-[#092d62]">
                                     <span className="flex size-7 items-center justify-center rounded-full bg-blue-100 text-[#0873e6]">
@@ -320,7 +251,6 @@ function NewUserModal({
                                                 }
                                                 required
                                                 minLength={8}
-                                                defaultValue="DBFOS1234"
                                                 autoComplete="new-password"
                                                 className="h-11 w-full rounded-lg border border-slate-300 px-3 pr-20 font-normal outline-none focus:border-[#0873e6] focus:ring-3 focus:ring-blue-100"
                                             />
@@ -337,9 +267,9 @@ function NewUserModal({
                                             </button>
                                         </div>
                                         <span className="mt-1.5 block text-[10px] font-normal text-slate-500">
-                                            Minimum of 8 characters. The user
-                                            will be asked to change it on first
-                                            login.
+                                            Minimum of 8 characters. Give this
+                                            temporary password to the user
+                                            securely.
                                         </span>
                                     </label>
                                 </div>
@@ -359,12 +289,9 @@ function NewUserModal({
                                         <select
                                             name="role"
                                             required
-                                            defaultValue=""
+                                            defaultValue="System Administrator"
                                             className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-[#0873e6]"
                                         >
-                                            <option value="" disabled>
-                                                Select a role
-                                            </option>
                                             <option>
                                                 System Administrator
                                             </option>
@@ -384,12 +311,9 @@ function NewUserModal({
                                         <select
                                             name="office"
                                             required
-                                            defaultValue=""
+                                            defaultValue="Municipal Office"
                                             className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 font-normal outline-none focus:border-[#0873e6]"
                                         >
-                                            <option value="" disabled>
-                                                Select barangay or office
-                                            </option>
                                             <option>Municipal Office</option>
                                             <option>Barangay Poblacion</option>
                                             <option>Barangay Tagoloan</option>
@@ -435,20 +359,15 @@ function NewUserModal({
                                 />
                                 <span>
                                     <b className="block text-[#092d62]">
-                                        Send login credentials by email
+                                        Send account notification by email
                                     </b>
                                     <span className="mt-1 block text-slate-500">
-                                        The user will receive their username,
-                                        temporary password, and sign-in
-                                        instructions.
+                                        The user will receive their username and
+                                        sign-in instructions. Share the
+                                        temporary password separately.
                                     </span>
                                 </span>
                             </label>
-                            {errors.send_credentials && (
-                                <p className="rounded-lg bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
-                                    {errors.send_credentials}
-                                </p>
-                            )}
                         </div>
 
                         <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end sm:px-8">
@@ -476,25 +395,47 @@ function NewUserModal({
     );
 }
 
-function UsersPage() {
+function UsersPage({ users }: { users: UserRow[] }) {
+    const { auth } = usePage<{
+        auth: { user: { name: string; role: string } };
+    }>().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [role, setRole] = useState('All Roles');
     const [status, setStatus] = useState('All Statuses');
+    const [office, setOffice] = useState('All Barangays / Offices');
     const [showNewUser, setShowNewUser] = useState(false);
     const [created, setCreated] = useState(false);
     const filtered = useMemo(
         () =>
-            users.filter(
-                (user) =>
-                    (role === 'All Roles' || user.role === role) &&
-                    (status === 'All Statuses' || user.status === status) &&
-                    `${user.name} ${user.username} ${user.email}`
-                        .toLowerCase()
-                        .includes(query.toLowerCase()),
-            ),
-        [query, role, status],
+            users
+                .filter(
+                    (user) =>
+                        (role === 'All Roles' || user.role === role) &&
+                        (status === 'All Statuses' || user.status === status) &&
+                        (office === 'All Barangays / Offices' ||
+                            user.office === office) &&
+                        `${user.name} ${user.username} ${user.email}`
+                            .toLowerCase()
+                            .includes(query.toLowerCase()),
+                )
+                .sort((first, second) => first.name.localeCompare(second.name)),
+        [office, query, role, status, users],
     );
+    const activeUsers = users.filter((user) => user.status === 'Active').length;
+    const inactiveUsers = users.filter(
+        (user) => user.status === 'Inactive',
+    ).length;
+    const administrators = users.filter(
+        (user) => user.role === 'System Administrator',
+    ).length;
+    const treasurersAndStaff = users.filter((user) =>
+        ['Barangay Treasurer', 'Staff'].includes(user.role),
+    ).length;
+    const percentage = (count: number) =>
+        users.length === 0
+            ? '0%'
+            : `${((count / users.length) * 100).toFixed(1)}%`;
 
     return (
         <>
@@ -519,7 +460,10 @@ function UsersPage() {
                     </div>
                     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4">
                         {menu.map(([icon, label, href], index) =>
-                            label === 'Master Data' ? (
+                            label === 'User Management' &&
+                            auth.user.role !==
+                                'System Administrator' ? null : label ===
+                              'Master Data' ? (
                                 <MasterDataMenu key={label} />
                             ) : label === 'Transaction' ? (
                                 <TransactionMenu key={label} />
@@ -568,10 +512,10 @@ function UsersPage() {
                             <NotificationBell />
                             <div className="hidden sm:block">
                                 <p className="text-sm font-bold">
-                                    Juan Dela Cruz
+                                    {auth.user.name}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                    Barangay Treasurer
+                                    {auth.user.role}
                                 </p>
                             </div>
                             <Form action="/logout" method="post">
@@ -599,12 +543,14 @@ function UsersPage() {
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-3">
-                                <button
-                                    onClick={() => setShowNewUser(true)}
-                                    className="rounded-lg bg-[#0873e6] px-6 py-2.5 text-sm font-semibold text-white shadow-md"
-                                >
-                                    ＋ &nbsp; Add New User
-                                </button>
+                                {auth.user.role === 'System Administrator' && (
+                                    <button
+                                        onClick={() => setShowNewUser(true)}
+                                        className="rounded-lg bg-[#0873e6] px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+                                    >
+                                        ＋ &nbsp; Add New User
+                                    </button>
+                                )}
                                 <button className="rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-[#092d62]">
                                     ⇩ &nbsp; Export Users
                                 </button>
@@ -618,7 +564,7 @@ function UsersPage() {
                             <Metric
                                 icon="♟"
                                 title="Total Users"
-                                value="28"
+                                value={String(users.length)}
                                 note="All user accounts"
                                 color="#0873e6"
                                 background="#e6f1ff"
@@ -626,10 +572,12 @@ function UsersPage() {
                             <Metric
                                 icon="♟"
                                 title="Active Users"
-                                value="22"
+                                value={String(activeUsers)}
                                 note={
                                     <>
-                                        <b className="text-green-600">78.6%</b>{' '}
+                                        <b className="text-green-600">
+                                            {percentage(activeUsers)}
+                                        </b>{' '}
                                         of total users
                                     </>
                                 }
@@ -639,10 +587,12 @@ function UsersPage() {
                             <Metric
                                 icon="♟"
                                 title="Inactive Users"
-                                value="4"
+                                value={String(inactiveUsers)}
                                 note={
                                     <>
-                                        <b className="text-orange-600">14.3%</b>{' '}
+                                        <b className="text-orange-600">
+                                            {percentage(inactiveUsers)}
+                                        </b>{' '}
                                         of total users
                                     </>
                                 }
@@ -652,10 +602,12 @@ function UsersPage() {
                             <Metric
                                 icon="♜"
                                 title="Administrators"
-                                value="5"
+                                value={String(administrators)}
                                 note={
                                     <>
-                                        <b className="text-purple-600">17.9%</b>{' '}
+                                        <b className="text-purple-600">
+                                            {percentage(administrators)}
+                                        </b>{' '}
                                         of total users
                                     </>
                                 }
@@ -665,10 +617,12 @@ function UsersPage() {
                             <Metric
                                 icon="♟"
                                 title="Treasurers / Staff"
-                                value="18"
+                                value={String(treasurersAndStaff)}
                                 note={
                                     <>
-                                        <b className="text-cyan-600">64.3%</b>{' '}
+                                        <b className="text-cyan-600">
+                                            {percentage(treasurersAndStaff)}
+                                        </b>{' '}
                                         of total users
                                     </>
                                 }
@@ -743,10 +697,27 @@ function UsersPage() {
                                     </label>
                                     <label className="text-[11px] font-semibold">
                                         Filter by Barangay / Office
-                                        <select className="mt-2 h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-[11px]">
+                                        <select
+                                            value={office}
+                                            onChange={(event) =>
+                                                setOffice(event.target.value)
+                                            }
+                                            className="mt-2 h-9 w-full rounded-md border border-slate-300 bg-white px-3 text-[11px]"
+                                        >
                                             <option>
                                                 All Barangays / Offices
                                             </option>
+                                            {[
+                                                ...new Set(
+                                                    users.map(
+                                                        (user) => user.office,
+                                                    ),
+                                                ),
+                                            ].map((value) => (
+                                                <option key={value}>
+                                                    {value}
+                                                </option>
+                                            ))}
                                         </select>
                                     </label>
                                     <label className="text-[11px] font-semibold">
@@ -859,29 +830,9 @@ function UsersPage() {
                                     </div>
                                     <div className="flex flex-col items-center justify-between gap-3 px-4 py-3 text-[10px] sm:flex-row">
                                         <span>
-                                            Showing 1 to {filtered.length} of 28
-                                            users
+                                            Showing {filtered.length} of{' '}
+                                            {users.length} users
                                         </span>
-                                        <div className="flex items-center gap-1">
-                                            <select className="mr-8 h-8 rounded-md border px-3">
-                                                <option>10 per page</option>
-                                            </select>
-                                            <button className="size-8 rounded border">
-                                                «
-                                            </button>
-                                            <button className="size-8 rounded bg-[#0873e6] font-bold text-white">
-                                                1
-                                            </button>
-                                            <button className="size-8 rounded border">
-                                                2
-                                            </button>
-                                            <button className="size-8 rounded border">
-                                                3
-                                            </button>
-                                            <button className="size-8 rounded border">
-                                                »
-                                            </button>
-                                        </div>
                                     </div>
                                 </section>
                             </div>
@@ -897,42 +848,36 @@ function UsersPage() {
                                                 '♟',
                                                 'System Administrator',
                                                 'Full system access',
-                                                '5',
                                                 '#0873e6',
                                             ],
                                             [
                                                 '♟',
                                                 'Punong Barangay',
                                                 'Barangay executive access',
-                                                '3',
                                                 '#7651d4',
                                             ],
                                             [
                                                 '♙',
                                                 'Barangay Treasurer',
                                                 'Financial management access',
-                                                '6',
                                                 '#0ba5aa',
                                             ],
                                             [
                                                 '▧',
                                                 'Barangay Secretary',
                                                 'Records and documents access',
-                                                '4',
                                                 '#15aab1',
                                             ],
                                             [
                                                 '♙',
                                                 'Sangguniang Barangay',
                                                 'Legislative access',
-                                                '5',
                                                 '#f58b0b',
                                             ],
                                             [
                                                 '◉',
                                                 'Viewer',
                                                 'Read-only access',
-                                                '5',
                                                 '#7b8798',
                                             ],
                                         ].map((row) => (
@@ -943,8 +888,8 @@ function UsersPage() {
                                                 <span
                                                     className="flex size-8 items-center justify-center rounded-md text-lg"
                                                     style={{
-                                                        color: row[4],
-                                                        background: `${row[4]}18`,
+                                                        color: row[3],
+                                                        background: `${row[3]}18`,
                                                     }}
                                                 >
                                                     {row[0]}
@@ -958,7 +903,13 @@ function UsersPage() {
                                                     </small>
                                                 </span>
                                                 <b className="text-sm">
-                                                    {row[3]}
+                                                    {
+                                                        users.filter(
+                                                            (user) =>
+                                                                user.role ===
+                                                                row[1],
+                                                        ).length
+                                                    }
                                                 </b>
                                             </div>
                                         ))}
@@ -969,67 +920,35 @@ function UsersPage() {
                                 </section>
                                 <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                                     <h3 className="text-sm font-bold text-[#092d62]">
-                                        ♟ &nbsp; Recent Account Activities
+                                        ♟ &nbsp; Recently Created Accounts
                                     </h3>
                                     <div className="mt-3">
-                                        {[
-                                            [
-                                                '↻',
-                                                'Password reset',
-                                                'User: maria.santos',
-                                                'May 20, 2025\n09:10 AM',
-                                                '#4c9df2',
-                                            ],
-                                            [
-                                                '＋',
-                                                'New user created',
-                                                'User: Robert Lim',
-                                                'May 19, 2025\n04:35 PM',
-                                                '#55b83c',
-                                            ],
-                                            [
-                                                '♟',
-                                                'Account deactivated',
-                                                'User: Anna Reyes',
-                                                'May 19, 2025\n10:11 AM',
-                                                '#ff8157',
-                                            ],
-                                            [
-                                                '▣',
-                                                'Account locked',
-                                                'User: Grace Villanueva',
-                                                'May 05, 2025\n03:17 PM',
-                                                '#f44336',
-                                            ],
-                                        ].map((row) => (
+                                        {users.slice(0, 4).map((user) => (
                                             <div
-                                                key={row[1]}
+                                                key={user.username}
                                                 className="flex items-center gap-3 border-b py-3"
                                             >
-                                                <span
-                                                    className="flex size-8 items-center justify-center rounded-full text-white"
-                                                    style={{
-                                                        background: row[4],
-                                                    }}
-                                                >
-                                                    {row[0]}
+                                                <span className="flex size-8 items-center justify-center rounded-full bg-blue-100 text-[#0873e6]">
+                                                    {user.avatar}
                                                 </span>
                                                 <span className="flex-1">
                                                     <b className="block text-[11px]">
-                                                        {row[1]}
+                                                        {user.name}
                                                     </b>
                                                     <small className="text-[9px] text-slate-500">
-                                                        {row[2]}
+                                                        {user.username}
                                                     </small>
                                                 </span>
                                                 <span className="text-right text-[8px] whitespace-pre-line text-slate-500">
-                                                    {row[3]}
+                                                    {user.createdAt}
                                                 </span>
                                             </div>
                                         ))}
-                                        <button className="w-full pt-4 text-xs font-semibold text-[#0873e6]">
-                                            View all activities &nbsp; →
-                                        </button>
+                                        {users.length === 0 && (
+                                            <p className="py-3 text-xs text-slate-500">
+                                                No user accounts yet.
+                                            </p>
+                                        )}
                                     </div>
                                 </section>
                             </aside>

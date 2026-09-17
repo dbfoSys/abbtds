@@ -20,6 +20,11 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'bootstrap_admin' => [
+        'email' => env('DBFOS_ADMIN_EMAIL'),
+        'password' => env('DBFOS_ADMIN_PASSWORD'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards

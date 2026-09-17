@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,18 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
+        $user = Auth::user();
+
+        if (! $user instanceof User || ! $user->hasActiveAccess()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'username' => 'This account is inactive or its access has expired.',
+            ]);
+        }
+
         $request->session()->regenerate();
+        $user->forceFill(['last_login_at' => now()])->save();
 
         return redirect()->intended(route('dashboard'));
     }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\PsgcController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\EnsureUserAccountActive;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -13,7 +14,7 @@ Route::middleware('guest')->group(function (): void {
         ->name('login.store');
 });
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', EnsureUserAccountActive::class])->group(function (): void {
     Route::inertia('/dashboard', 'dashboard')->name('dashboard');
     Route::inertia('/municipal-information', 'municipal-information/index')->name('municipal-information.index');
     Route::inertia('/positions', 'positions/index')->name('positions.index');
@@ -52,7 +53,7 @@ Route::middleware('auth')->group(function (): void {
     Route::inertia('/budgets', 'budgets/index')->name('budgets.index');
     Route::inertia('/budgets/create', 'budgets/create')->name('budgets.create');
     Route::inertia('/settings', 'settings/index')->name('settings.index');
-    Route::inertia('/users', 'users/index')->name('users.index');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
